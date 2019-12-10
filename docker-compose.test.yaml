@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+    php:
+        image: symfony-php:local
+        build:
+            context: .
+            dockerfile: ./docker/php/Dockerfile
+    database:
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: db_name
+            MYSQL_USER: db_user
+            MYSQL_PASSWORD: db_password
+        ports:
+            - 3306:3306
+        volumes:
+            - db_data:/var/lib/mysql
+    app:
+        image: symfony-app:local
+        build:
+            args:
+                PHP_IMAGE: "symfony-php:local"
+                APP_ENV: "dev"
+            context: .
+            dockerfile: ./docker/Dockerfile
+    web:
+        image: symfony-web:local
+        build:
+            args:
+                ASSETS_IMAGE: "symfony-app:local"
+            context: .
+            dockerfile: ./docker/nginx/Dockerfile
+        ports:
+            - 8000:80
+        depends_on:
+          - app
+volumes:
+    db_data: {}
